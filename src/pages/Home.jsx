@@ -11,6 +11,7 @@ function Home() {
        <img src={trainImg} alt="Train image" className={styles.trainImage} />
        </div>
 
+       <div className={styles.container}>
        {/* booking form with source, destination, date of journey and class of travel */}
        <div className={styles.bookingForm}>
          <h2>BOOK TICKET</h2>
@@ -87,6 +88,7 @@ function Home() {
                <button className={styles.showAllButton} type="submit">Show All Trains</button>
             </div>
         </form>
+       </div>
        </div>
     </>
   )
