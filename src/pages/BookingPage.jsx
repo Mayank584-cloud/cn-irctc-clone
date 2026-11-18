@@ -1,12 +1,16 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {useAuth} from '../context/AuthContext';
+import { useLocation } from "react-router-dom";
+import styles from "../styles/BookingPage.module.css"
+
 
 function BookingPage() {
+  const location = useLocation();
   const currentUser = useAuth();
   const [trainDetails, setTrainDetails] = useState(null);
   const [selectedClass, setSelectedClass] = useState('');
-  const [availableClasses, setAvailableClasses] = useState([]);
   const [classPrice, setClassPrice] = useState({});
+  const [availableClasses, setAvailableClasses] = useState([]);
   const [passengers, setPassengers] = useState([{
     name: '',
     age: '',
@@ -17,6 +21,46 @@ function BookingPage() {
     email: currentUser?.email || '',
     phone: ''
   })
+
+  console.log(location);
+  console.log(location.state);
+
+  // check train details
+  useEffect(() => {
+    // check for detail details from navigation state
+    if (location.state?.trainNumber) {
+      // price info from navigation state
+      const priceData = location.state?.price || {};
+      setClassPrice(priceData);
+
+      // get available classes
+      const classes = Object.keys(priceData);
+      setAvailableClasses(classes);
+
+      // set default value for class (selected class, first class)
+      if (classes.length > 0) {
+        const defaultClass = location.state?.travelClass || classes[0];
+        setSelectedClass(defaultClass);
+      }
+
+      // set train details from navigation state
+      setTrainDetails({
+        trainNumber: location.state?.trainNumber,
+        trainName: location.state?.trainName || 'NA',
+        from: location.state?.from,
+        to: location.state?.to,
+        date: location.state?.date,
+        departureTime: location.state?.departureTime,
+        arrivalTime: location.state?.arrivalTime,
+        travelClass: location.state?.travelClass,
+        duration: location.state?.duration,
+        quota: location.state?.quota || 'General'
+      })
+    } else {
+      //  No train selected, might want to handle this case later
+      console.log("No train details provided");
+    }
+  }, [location.state])
 
   // handle class change for selected class
   const handleClassChange = (e) => {
@@ -73,12 +117,20 @@ function BookingPage() {
 
   const fareDetails = calculateTotalFare();
 
+  // handle contact change
+  const handleContactChange = (field, value) => {
+    setContactInfo({
+      ...contactInfo,
+      [field]: value
+    })
+  }
+
   return (
     <div className={styles.container}>
       {/* Train Details */}
       <h2>Book Your Train Ticket</h2>
       <div className={styles.trainSummary}>
-        <h3>Tain Dtails</h3>
+        <h3>Tain Details</h3>
         <div className={styles.detailsGrid}>
           <div>
             <strong>Train Number: </strong> {trainDetails.trainNumber}
@@ -96,10 +148,10 @@ function BookingPage() {
             <strong>Date: </strong> {trainDetails.date}
           </div>
           <div>
-            <strong>Departure: </strong> {trainDetails.departure_time}
+            <strong>Departure: </strong> {trainDetails.departureTime}
           </div>
           <div>
-            <strong>Arrival: </strong> {trainDetails.arrival_time}
+            <strong>Arrival: </strong> {trainDetails.arrivalTime}
           </div>
           <div>
             <strong>Duration: </strong> {trainDetails.duration}
@@ -258,8 +310,8 @@ function BookingPage() {
 
         {/* payment section */}
         <div className={styles.payementSection}>
-          <h3>Payement Summary</h3>
-          <div className={style.paymentDetails}>
+          <h3>Payment Summary</h3>
+          <div className={styles.paymentDetails}>
             <div>
               <span>Base Fare ({selectedClass} x {passengers.length}):</span>
               <span>₹{fareDetails.baseFare}</span>
